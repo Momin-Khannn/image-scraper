@@ -4,10 +4,10 @@ A production-ready Python image scraper that can run from GitHub Actions instead
 
 GitHub is used in two ways:
 
-- **GitHub Actions** runs the Python scraper in the cloud and uploads the scraped images as an artifact.
-- **GitHub Pages** publishes a public project page from `docs/`.
+- **GitHub Actions** runs the Python scraper in the cloud, uploads the scraped images as an artifact, and can deploy the latest scrape as a public gallery.
+- **GitHub Pages** publishes a public project page from `docs/` and the latest generated gallery from `site/latest/`.
 
-GitHub Pages is static hosting, so it does not run Python or accept public scrape requests by itself.
+GitHub Pages is static hosting, so it does not run Python or accept public scrape requests by itself. The Python job runs on GitHub Actions, then Pages shows the static result.
 
 ## Local Run
 
@@ -52,6 +52,7 @@ git push -u origin main
 4. Go to **Settings > Pages** and select **GitHub Actions** as the Pages source if GitHub asks for it.
 5. The public site deploys from `.github/workflows/pages.yml`.
 6. The scraper workflow appears under **Actions > Scrape Images**.
+7. Your public site will be available at `https://YOUR-USERNAME.github.io/image-scraper-actions/`.
 
 ## Run In GitHub Actions
 
@@ -61,9 +62,19 @@ git push -u origin main
    - `target_url`
    - optional `max_images`
    - optional `all_shopify_images`
-4. When the run finishes, download the artifact named `scraped-images-<run-number>`.
+4. When the run finishes, open the Pages URL to view the latest public gallery.
+5. You can also download the artifact named `scraped-images-<run-number>`.
 
-The artifact contains downloaded images plus `manifest.json`. Artifacts are retained for 14 days.
+The artifact contains downloaded images plus `manifest.json`. Artifacts are retained for 14 days. The public gallery is replaced each time the workflow successfully deploys a new scrape.
+
+## Public Gallery
+
+After deployment, the public pages are:
+
+- Project site: `https://YOUR-USERNAME.github.io/image-scraper-actions/`
+- Latest gallery: `https://YOUR-USERNAME.github.io/image-scraper-actions/latest/`
+
+Only publish scrape results you are allowed to show publicly. If you need private results, keep the repository private and use workflow artifacts instead of Pages.
 
 ## Test
 

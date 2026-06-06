@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="A GitHub Actions powered image scraper that publishes downloadable run artifacts.">
+    <meta name="description" content="A GitHub Actions powered image scraper that publishes a public static gallery and downloadable run artifacts.">
     <title>Image Scraper Actions</title>
     <style>
       :root {
@@ -221,10 +221,11 @@
           <div class="eyebrow">GitHub Actions deployment</div>
           <h1>Image Scraper Actions</h1>
           <p class="lead">
-            A packaged Python scraper that runs in GitHub's cloud runners and publishes each scrape as a downloadable artifact.
+            A packaged Python scraper that runs in GitHub's cloud runners and publishes the latest scrape as a public gallery.
           </p>
           <div class="actions">
             <a class="button" id="actions-link" href="https://github.com/">Open workflow</a>
+            <a class="button secondary" href="latest/">Latest gallery</a>
             <a class="button secondary" id="repo-link" href="https://github.com/">View repository</a>
           </div>
         </div>
@@ -239,8 +240,8 @@
             <p>The Python job runs on Ubuntu through GitHub Actions, so local machine uptime is not required.</p>
           </article>
           <article class="tile">
-            <strong>Downloadable output</strong>
-            <p>Each run uploads images and manifest metadata as an Actions artifact retained for 14 days.</p>
+            <strong>Public latest gallery</strong>
+            <p>Successful scrape runs publish the latest image set to GitHub Pages for public viewing.</p>
           </article>
           <article class="tile">
             <strong>Static public page</strong>
@@ -267,12 +268,12 @@
           <div class="step">
             <span>4</span>
             <h2>Publish</h2>
-            <p>GitHub stores the result as a workflow artifact.</p>
+            <p>GitHub deploys the latest gallery to Pages and stores a workflow artifact.</p>
           </div>
         </div>
 
         <div class="stripe">
-          GitHub Pages hosts static files only. The scraper runs through GitHub Actions, not as a public Python web server.
+          GitHub Pages hosts the public gallery. The scraper itself runs through GitHub Actions, not as a public Python web server.
         </div>
       </section>
     </main>
