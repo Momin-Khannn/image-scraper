@@ -322,7 +322,7 @@
                 <option value="all">All images per product</option>
               </select>
             </label>
-            <a class="button" id="request-link" href="https://github.com/Momin-Khannn/image-scraper-actions/issues/new">Create request</a>
+            <a class="button" id="request-link" href="https://github.com/Momin-Khannn/image-scraper/issues/new">Create request</a>
           </div>
           <div class="request-note">A GitHub account is required to submit the request because GitHub Actions protects workflow triggers behind GitHub identity.</div>
         </div>
@@ -364,7 +364,7 @@
       const owner = location.hostname.endsWith(".github.io")
         ? location.hostname.split(".")[0]
         : "Momin-Khannn";
-      const repo = location.pathname.split("/").filter(Boolean)[0] || "image-scraper-actions";
+      const repo = location.pathname.split("/").filter(Boolean)[0] || "image-scraper";
       const repoUrl = `https://github.com/${owner}/${repo}`;
       const requestUrl = document.getElementById("request-url");
       const requestMax = document.getElementById("request-max");

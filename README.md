@@ -39,11 +39,11 @@ image-scraper TARGET_URL [--output-dir output] [--max-images 200] [--all-shopify
 
 ## Deploy To GitHub
 
-1. Create a public GitHub repository named `image-scraper-actions` under `Momin-Khannn`.
+1. Create a public GitHub repository named `image-scraper` under `Momin-Khannn`.
 2. From this folder, run:
 
 ```powershell
-git remote add origin https://github.com/Momin-Khannn/image-scraper-actions.git
+git remote add origin https://github.com/Momin-Khannn/image-scraper.git
 git push -u origin main
 ```
 
@@ -51,11 +51,11 @@ git push -u origin main
 4. Go to **Settings > Pages** and select **GitHub Actions** as the Pages source if GitHub asks for it.
 5. The public site deploys from `.github/workflows/pages.yml`.
 6. The scraper workflow appears under **Actions > Scrape Images**.
-7. Your public site will be available at `https://Momin-Khannn.github.io/image-scraper-actions/`.
+7. Your public site will be available at `https://Momin-Khannn.github.io/image-scraper/`.
 
 ## Public Visitor Flow
 
-1. Visitor opens `https://Momin-Khannn.github.io/image-scraper-actions/`.
+1. Visitor opens `https://Momin-Khannn.github.io/image-scraper/`.
 2. Visitor enters a website URL and clicks **Create request**.
 3. GitHub opens a prefilled issue. The visitor submits it.
 4. `.github/workflows/process-request.yml` runs automatically.
@@ -78,9 +78,9 @@ The artifact contains downloaded images plus `manifest.json`. Artifacts are reta
 
 After deployment, the public pages are:
 
-- Project site: `https://Momin-Khannn.github.io/image-scraper-actions/`
-- Latest gallery: `https://Momin-Khannn.github.io/image-scraper-actions/latest/`
-- Public request history: `https://Momin-Khannn.github.io/image-scraper-actions/requests/`
+- Project site: `https://Momin-Khannn.github.io/image-scraper/`
+- Latest gallery: `https://Momin-Khannn.github.io/image-scraper/latest/`
+- Public request history: `https://Momin-Khannn.github.io/image-scraper/requests/`
 
 Only publish scrape results you are allowed to show publicly. If you need private results, keep the repository private and use workflow artifacts instead of Pages.
 

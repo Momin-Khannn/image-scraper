@@ -23,7 +23,7 @@ def test_parse_event_normalizes_inputs_and_caps_max_images():
     event = {
         "issue": {
             "number": 42,
-            "html_url": "https://github.com/Momin-Khannn/image-scraper-actions/issues/42",
+            "html_url": "https://github.com/Momin-Khannn/image-scraper/issues/42",
             "body": """### Website URL
 
 example.com
