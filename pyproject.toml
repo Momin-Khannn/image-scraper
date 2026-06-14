@@ -21,6 +21,7 @@ dev = [
 [project.scripts]
 image-scraper = "image_scraper.cli:main"
 image-scraper-gallery = "image_scraper.gallery:main"
+image-scraper-request = "image_scraper.request:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

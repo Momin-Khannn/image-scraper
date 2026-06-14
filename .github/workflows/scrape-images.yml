@@ -19,7 +19,7 @@ on:
         type: boolean
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -71,8 +71,36 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
+      - name: Restore previous public site
+        run: |
+          mkdir -p site
+          git fetch origin gh-pages --depth=1 || true
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git archive origin/gh-pages | tar -x -C site
+          fi
+
       - name: Build public gallery
-        run: image-scraper-gallery --docs-dir docs --output-dir output --site-dir site
+        run: image-scraper-gallery --docs-dir docs --output-dir output --site-dir site --preserve-site --gallery-subdir manual/run-${{ github.run_number }}
+
+      - name: Persist public site branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf pages-branch
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git worktree add pages-branch origin/gh-pages
+          else
+            git worktree add --detach pages-branch
+            cd pages-branch
+            git checkout --orphan gh-pages
+            cd ..
+          fi
+          find pages-branch -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a site/. pages-branch/
+          cd pages-branch
+          git add -A
+          git commit -m "Publish manual scrape run ${{ github.run_number }}" || exit 0
+          git push origin HEAD:gh-pages
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

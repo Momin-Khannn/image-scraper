@@ -138,6 +138,59 @@
         color: #493916;
       }
 
+      .request-panel {
+        margin-top: 32px;
+        padding: 24px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .request-panel h2 {
+        margin: 0 0 10px;
+        font-size: 1.45rem;
+        letter-spacing: 0;
+      }
+
+      .request-panel p {
+        margin: 0 0 18px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .request-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(140px, 0.6fr) minmax(180px, 0.8fr) auto;
+        gap: 12px;
+        align-items: end;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: #344357;
+        font-size: 0.88rem;
+        font-weight: 800;
+      }
+
+      input,
+      select {
+        width: 100%;
+        min-height: 44px;
+        padding: 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #ffffff;
+        color: var(--ink);
+        font: inherit;
+      }
+
+      .request-note {
+        margin-top: 14px;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
       .pipeline {
         margin-top: 32px;
         display: grid;
@@ -199,6 +252,7 @@
         }
 
         .status-grid,
+        .request-grid,
         .pipeline {
           grid-template-columns: 1fr;
         }
@@ -249,6 +303,30 @@
           </article>
         </div>
 
+        <div class="request-panel">
+          <h2>Request Picture Collection</h2>
+          <p>Enter a website URL and create a GitHub request. The cloud workflow processes it and publishes the result gallery.</p>
+          <div class="request-grid">
+            <label>
+              Website URL
+              <input id="request-url" type="url" placeholder="https://example.com/products">
+            </label>
+            <label>
+              Max images
+              <input id="request-max" type="number" min="1" max="200" value="50">
+            </label>
+            <label>
+              Shopify mode
+              <select id="request-mode">
+                <option value="first">First image per product</option>
+                <option value="all">All images per product</option>
+              </select>
+            </label>
+            <a class="button" id="request-link" href="https://github.com/Momin-Khannn/image-scraper-actions/issues/new">Create request</a>
+          </div>
+          <div class="request-note">A GitHub account is required to submit the request because GitHub Actions protects workflow triggers behind GitHub identity.</div>
+        </div>
+
         <div class="pipeline" aria-label="Deployment pipeline">
           <div class="step">
             <span>1</span>
@@ -285,13 +363,46 @@
     <script>
       const owner = location.hostname.endsWith(".github.io")
         ? location.hostname.split(".")[0]
-        : "";
+        : "Momin-Khannn";
       const repo = location.pathname.split("/").filter(Boolean)[0] || "image-scraper-actions";
-      if (owner) {
-        const repoUrl = `https://github.com/${owner}/${repo}`;
-        document.getElementById("repo-link").href = repoUrl;
-        document.getElementById("actions-link").href = `${repoUrl}/actions/workflows/scrape-images.yml`;
+      const repoUrl = `https://github.com/${owner}/${repo}`;
+      const requestUrl = document.getElementById("request-url");
+      const requestMax = document.getElementById("request-max");
+      const requestMode = document.getElementById("request-mode");
+      const requestLink = document.getElementById("request-link");
+
+      document.getElementById("repo-link").href = repoUrl;
+      document.getElementById("actions-link").href = `${repoUrl}/actions/workflows/scrape-images.yml`;
+
+      function buildIssueUrl() {
+        const target = requestUrl.value.trim();
+        const maxImages = Math.max(1, Math.min(200, Number(requestMax.value || 50)));
+        const mode = requestMode.value === "all" ? "All images per product" : "First image per product";
+        const titleTarget = target ? ` ${target.replace(/^https?:\/\//, "").slice(0, 60)}` : "";
+        const body = [
+          "### Website URL",
+          "",
+          target || "https://example.com",
+          "",
+          "### Maximum images",
+          "",
+          String(maxImages),
+          "",
+          "### Shopify image mode",
+          "",
+          mode,
+          "",
+          "### Public permission",
+          "",
+          "- [x] I confirm I am allowed to scrape and publicly publish images from this URL."
+        ].join("\n");
+        requestLink.href = `${repoUrl}/issues/new?title=${encodeURIComponent(`[Scrape Request]${titleTarget}`)}&body=${encodeURIComponent(body)}`;
       }
+
+      requestUrl.addEventListener("input", buildIssueUrl);
+      requestMax.addEventListener("input", buildIssueUrl);
+      requestMode.addEventListener("change", buildIssueUrl);
+      buildIssueUrl();
     </script>
   </body>
 </html>

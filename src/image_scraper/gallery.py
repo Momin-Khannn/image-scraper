@@ -33,10 +33,18 @@ def image_entries(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     return [entry for entry in entries if isinstance(entry, dict)]
 
 
-def copy_docs(docs_dir: Path, site_dir: Path) -> None:
-    if site_dir.exists():
+def copy_docs(docs_dir: Path, site_dir: Path, *, preserve_site: bool = False) -> None:
+    if site_dir.exists() and not preserve_site:
         shutil.rmtree(site_dir)
-    shutil.copytree(docs_dir, site_dir)
+    site_dir.mkdir(parents=True, exist_ok=True)
+    for source in docs_dir.rglob("*"):
+        relative = source.relative_to(docs_dir)
+        destination = site_dir / relative
+        if source.is_dir():
+            destination.mkdir(parents=True, exist_ok=True)
+        else:
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
 
 
 def copy_gallery_images(output_dir: Path, images_dir: Path, manifest: dict[str, Any]) -> list[dict[str, Any]]:
@@ -57,7 +65,7 @@ def copy_gallery_images(output_dir: Path, images_dir: Path, manifest: dict[str, 
     return copied
 
 
-def render_gallery(manifest: dict[str, Any], copied_images: list[dict[str, Any]]) -> str:
+def render_gallery(manifest: dict[str, Any], copied_images: list[dict[str, Any]], *, back_href: str = "../") -> str:
     target_url = html.escape(str(manifest.get("target_url") or "No target URL"))
     strategy = html.escape(str(manifest.get("strategy") or "unknown"))
     started_at = html.escape(str(manifest.get("started_at") or "unknown"))
@@ -240,7 +248,7 @@ def render_gallery(manifest: dict[str, Any], copied_images: list[dict[str, Any]]
   <body>
     <header>
       <div class="wrap">
-        <a class="back" href="../">Back to project</a>
+        <a class="back" href="{html.escape(back_href)}">Back to project</a>
         <h1>Latest Scrape Gallery</h1>
         <p>Public static output from the most recent successful GitHub Actions scrape.</p>
         <div class="summary">
@@ -265,7 +273,132 @@ def render_gallery(manifest: dict[str, Any], copied_images: list[dict[str, Any]]
 """
 
 
-def build_public_gallery(docs_dir: str | Path, output_dir: str | Path, site_dir: str | Path) -> dict[str, Any]:
+def render_requests_index(request_dirs: list[Path]) -> str:
+    rows = []
+    for request_dir in sorted(request_dirs, key=lambda path: path.name, reverse=True):
+        manifest_path = request_dir / "manifest.json"
+        if not manifest_path.exists():
+            continue
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            continue
+        title = html.escape(request_dir.name.replace("-", " ").title())
+        target = html.escape(str(manifest.get("target_url") or "Unknown target"))
+        finished_at = html.escape(str(manifest.get("finished_at") or "Unknown time"))
+        count = html.escape(str(manifest.get("downloaded_count") or 0))
+        rows.append(
+            f"""
+            <a class="row" href="{html.escape(request_dir.name)}/">
+              <strong>{title}</strong>
+              <span>{target}</span>
+              <span>{count} images</span>
+              <span>{finished_at}</span>
+            </a>
+            """
+        )
+
+    body = "\n".join(rows)
+    if not body:
+        body = """
+        <div class="empty">
+          <strong>No public requests have been published yet.</strong>
+          <p>Successful scrape requests will appear here.</p>
+        </div>
+        """
+
+    return f"""<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Public Scrape Requests</title>
+    <style>
+      body {{
+        margin: 0;
+        padding: 32px 20px;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #18202a;
+        background: #f8fafc;
+        letter-spacing: 0;
+      }}
+
+      main {{
+        width: min(980px, 100%);
+        margin: 0 auto;
+      }}
+
+      h1 {{
+        margin: 18px 0 10px;
+        font-size: clamp(2rem, 5vw, 4rem);
+        line-height: 1;
+        letter-spacing: 0;
+      }}
+
+      p {{
+        color: #617083;
+        line-height: 1.6;
+      }}
+
+      a {{
+        color: #0f766e;
+        font-weight: 800;
+      }}
+
+      .list {{
+        display: grid;
+        gap: 12px;
+        margin-top: 24px;
+      }}
+
+      .row,
+      .empty {{
+        display: grid;
+        gap: 6px;
+        padding: 16px;
+        border: 1px solid #d9e2ec;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #18202a;
+        text-decoration: none;
+      }}
+
+      .row span,
+      .empty p {{
+        color: #617083;
+      }}
+    </style>
+  </head>
+  <body>
+    <main>
+      <a href="../">Back to project</a>
+      <h1>Public Scrape Requests</h1>
+      <p>Published GitHub Actions scrape results from public request issues.</p>
+      <section class="list" aria-label="Published scrape requests">
+        {body}
+      </section>
+    </main>
+  </body>
+</html>
+"""
+
+
+def refresh_requests_index(site_dir: Path) -> None:
+    requests_dir = site_dir / "requests"
+    requests_dir.mkdir(parents=True, exist_ok=True)
+    request_dirs = [path for path in requests_dir.iterdir() if path.is_dir()]
+    (requests_dir / "index.html").write_text(render_requests_index(request_dirs), encoding="utf-8")
+
+
+def build_public_gallery(
+    docs_dir: str | Path,
+    output_dir: str | Path,
+    site_dir: str | Path,
+    *,
+    gallery_subdir: str = "latest",
+    update_latest: bool = True,
+    preserve_site: bool = False,
+) -> dict[str, Any]:
     docs_path = Path(docs_dir)
     output_path = Path(output_dir)
     site_path = Path(site_dir)
@@ -275,19 +408,31 @@ def build_public_gallery(docs_dir: str | Path, output_dir: str | Path, site_dir:
     if not output_path.exists():
         raise ValueError(f"output_dir does not exist: {output_path}")
 
-    copy_docs(docs_path, site_path)
+    copy_docs(docs_path, site_path, preserve_site=preserve_site)
     manifest = read_manifest(output_path)
-    latest_dir = site_path / "latest"
-    images_dir = latest_dir / "images"
-    latest_dir.mkdir(parents=True, exist_ok=True)
+    gallery_dir = site_path / gallery_subdir
+    images_dir = gallery_dir / "images"
+    gallery_dir.mkdir(parents=True, exist_ok=True)
 
     copied_images = copy_gallery_images(output_path, images_dir, manifest)
-    (latest_dir / "index.html").write_text(render_gallery(manifest, copied_images), encoding="utf-8")
-    (latest_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    back_href = "../" if "/" not in gallery_subdir.strip("/") else "../../"
+    (gallery_dir / "index.html").write_text(
+        render_gallery(manifest, copied_images, back_href=back_href),
+        encoding="utf-8",
+    )
+    (gallery_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+    if update_latest and gallery_subdir != "latest":
+        latest_dir = site_path / "latest"
+        if latest_dir.exists():
+            shutil.rmtree(latest_dir)
+        shutil.copytree(gallery_dir, latest_dir)
+
+    refresh_requests_index(site_path)
 
     return {
         "site_dir": str(site_path),
-        "latest_dir": str(latest_dir),
+        "gallery_dir": str(gallery_dir),
         "published_images": len(copied_images),
     }
 
@@ -300,6 +445,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--docs-dir", default="docs", help="Base static site directory. Default: docs")
     parser.add_argument("--output-dir", default="output", help="Scraper output directory. Default: output")
     parser.add_argument("--site-dir", default="site", help="Generated Pages site directory. Default: site")
+    parser.add_argument("--gallery-subdir", default="latest", help="Gallery path inside the generated site. Default: latest")
+    parser.add_argument("--preserve-site", action="store_true", help="Keep existing files in site-dir before copying docs")
+    parser.add_argument("--no-latest", action="store_true", help="Do not update the latest gallery alias")
     return parser
 
 
@@ -307,7 +455,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     try:
-        report = build_public_gallery(args.docs_dir, args.output_dir, args.site_dir)
+        report = build_public_gallery(
+            args.docs_dir,
+            args.output_dir,
+            args.site_dir,
+            gallery_subdir=args.gallery_subdir,
+            update_latest=not args.no_latest,
+            preserve_site=args.preserve_site,
+        )
     except ValueError as exc:
         parser.error(str(exc))
     print(json.dumps(report, indent=2))

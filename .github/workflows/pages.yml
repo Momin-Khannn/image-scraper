@@ -5,7 +5,7 @@ on:
     branches: ["main"]
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -27,10 +27,39 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Restore previous public site
+        run: |
+          mkdir -p site
+          git fetch origin gh-pages --depth=1 || true
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git archive origin/gh-pages | tar -x -C site
+          fi
+          cp -a docs/. site/
+
+      - name: Persist public site branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf pages-branch
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git worktree add pages-branch origin/gh-pages
+          else
+            git worktree add --detach pages-branch
+            cd pages-branch
+            git checkout --orphan gh-pages
+            cd ..
+          fi
+          find pages-branch -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a site/. pages-branch/
+          cd pages-branch
+          git add -A
+          git commit -m "Publish project site" || exit 0
+          git push origin HEAD:gh-pages
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs
+          path: site
 
       - name: Deploy to GitHub Pages
         id: deployment

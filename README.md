@@ -2,10 +2,13 @@
 
 A production-ready Python image scraper that can run from GitHub Actions instead of your local machine. It downloads images from Shopify product JSON when available, falls back to standard HTML image extraction, and writes every run to an output folder with a `manifest.json` report.
 
+The deployed site lets visitors request picture collection through GitHub Issues. GitHub Actions processes each request, publishes the result gallery to GitHub Pages, comments the public link back on the issue, and closes the request.
+
 GitHub is used in two ways:
 
-- **GitHub Actions** runs the Python scraper in the cloud, uploads the scraped images as an artifact, and can deploy the latest scrape as a public gallery.
-- **GitHub Pages** publishes a public project page from `docs/` and the latest generated gallery from `site/latest/`.
+- **GitHub Actions** runs the Python scraper in the cloud, uploads the scraped images as an artifact, and deploys public request galleries.
+- **GitHub Issues** acts as the public request queue for visitors.
+- **GitHub Pages** publishes the public software site, latest gallery, and request history.
 
 GitHub Pages is static hosting, so it does not run Python or accept public scrape requests by itself. The Python job runs on GitHub Actions, then Pages shows the static result.
 
@@ -36,15 +39,11 @@ image-scraper TARGET_URL [--output-dir output] [--max-images 200] [--all-shopify
 
 ## Deploy To GitHub
 
-1. Create a public GitHub repository named `image-scraper-actions`.
+1. Create a public GitHub repository named `image-scraper-actions` under `Momin-Khannn`.
 2. From this folder, run:
 
 ```powershell
-git init
-git add .
-git commit -m "Build GitHub Actions image scraper"
-git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/image-scraper-actions.git
+git remote add origin https://github.com/Momin-Khannn/image-scraper-actions.git
 git push -u origin main
 ```
 
@@ -52,7 +51,15 @@ git push -u origin main
 4. Go to **Settings > Pages** and select **GitHub Actions** as the Pages source if GitHub asks for it.
 5. The public site deploys from `.github/workflows/pages.yml`.
 6. The scraper workflow appears under **Actions > Scrape Images**.
-7. Your public site will be available at `https://YOUR-USERNAME.github.io/image-scraper-actions/`.
+7. Your public site will be available at `https://Momin-Khannn.github.io/image-scraper-actions/`.
+
+## Public Visitor Flow
+
+1. Visitor opens `https://Momin-Khannn.github.io/image-scraper-actions/`.
+2. Visitor enters a website URL and clicks **Create request**.
+3. GitHub opens a prefilled issue. The visitor submits it.
+4. `.github/workflows/process-request.yml` runs automatically.
+5. GitHub Actions scrapes the target, publishes the gallery, comments the public result URL, and closes the issue.
 
 ## Run In GitHub Actions
 
@@ -71,8 +78,9 @@ The artifact contains downloaded images plus `manifest.json`. Artifacts are reta
 
 After deployment, the public pages are:
 
-- Project site: `https://YOUR-USERNAME.github.io/image-scraper-actions/`
-- Latest gallery: `https://YOUR-USERNAME.github.io/image-scraper-actions/latest/`
+- Project site: `https://Momin-Khannn.github.io/image-scraper-actions/`
+- Latest gallery: `https://Momin-Khannn.github.io/image-scraper-actions/latest/`
+- Public request history: `https://Momin-Khannn.github.io/image-scraper-actions/requests/`
 
 Only publish scrape results you are allowed to show publicly. If you need private results, keep the repository private and use workflow artifacts instead of Pages.
 

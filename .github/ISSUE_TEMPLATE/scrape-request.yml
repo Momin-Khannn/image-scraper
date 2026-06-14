@@ -1,0 +1,43 @@
+name: Picture Scrape Request
+description: Request a public GitHub Actions picture scraping run.
+title: "[Scrape Request] "
+labels: ["scrape-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This request will be processed by GitHub Actions and the latest result can be published publicly on GitHub Pages.
+  - type: input
+    id: website-url
+    attributes:
+      label: Website URL
+      description: Enter the website page you have permission to scrape.
+      placeholder: https://example.com/products
+    validations:
+      required: true
+  - type: input
+    id: maximum-images
+    attributes:
+      label: Maximum images
+      description: Enter a number from 1 to 200.
+      value: "50"
+    validations:
+      required: true
+  - type: dropdown
+    id: shopify-image-mode
+    attributes:
+      label: Shopify image mode
+      description: Choose how Shopify product images should be collected.
+      options:
+        - First image per product
+        - All images per product
+      default: 0
+    validations:
+      required: true
+  - type: checkboxes
+    id: public-permission
+    attributes:
+      label: Public permission
+      options:
+        - label: I confirm I am allowed to scrape and publicly publish images from this URL.
+          required: true

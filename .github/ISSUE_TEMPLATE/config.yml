@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Public project site
+    url: https://momin-khannn.github.io/image-scraper-actions/
+    about: Use the public site to start a scrape request.
