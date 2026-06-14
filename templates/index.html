@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Image Scraper — a cloud-powered image collection service that automatically downloads, packages, and publishes product images from any website.">
     <title>Image Scraper — Cloud-Powered Image Collection</title>
-    <link rel="icon" href="logo.png" type="image/png">
+    <link rel="icon" href="/static/logo.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -630,13 +630,13 @@
     <nav>
       <div class="nav-inner">
         <a class="brand" href="#">
-          <img src="logo.png" alt="Image Scraper logo">
+          <img src="/static/logo.png" alt="Image Scraper logo">
           <span>Image Scraper</span>
         </a>
         <div class="nav-links">
           <a href="#features">Features</a>
           <a href="#how-it-works">How It Works</a>
-          <a href="latest/">Gallery</a>
+          <a href="/static/site/latest/index.html">Gallery</a>
           <a href="#request" class="btn-nav">Start Scraping</a>
         </div>
       </div>
@@ -655,7 +655,7 @@
         </p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#request">Start Collecting →</a>
-          <a class="btn btn-ghost" href="latest/">View Latest Gallery</a>
+          <a class="btn btn-ghost" href="/static/site/latest/index.html">View Latest Gallery</a>
         </div>
 
         <div class="stats">
@@ -752,39 +752,39 @@
     <!-- Request Form -->
     <section class="request" id="request">
       <div class="wrap">
-        <div class="request-card">
+        <form class="request-card" action="/scrape" method="POST">
           <h2>Start a Collection</h2>
-          <p>Enter a website URL below and we'll create a cloud scraping request for you.</p>
+          <p>Enter a website URL below and we'll scrape it immediately.</p>
           <div class="form-grid">
             <div class="form-group">
               <label for="request-url">Website URL</label>
-              <input id="request-url" type="url" placeholder="https://example.com/products">
+              <input id="request-url" name="url" type="url" placeholder="https://example.com/products" required>
             </div>
             <div class="form-group">
               <label for="request-max">Max Images</label>
-              <input id="request-max" type="number" min="1" max="200" value="50">
+              <input id="request-max" name="max_images" type="number" min="1" max="200" value="50">
             </div>
             <div class="form-group">
               <label for="request-mode">Shopify Mode</label>
-              <select id="request-mode">
+              <select id="request-mode" name="shopify_mode">
                 <option value="first">First per product</option>
                 <option value="all">All per product</option>
             <div class="form-group">
               <label for="request-selection">Image Selection</label>
-              <input id="request-selection" type="text" placeholder="e.g. 1-5, 9-">
+              <input id="request-selection" name="selection" type="text" placeholder="e.g. 1-5, 9-">
             </div>
             <div class="form-group" style="grid-column: 1 / -1; margin-top: 4px;">
               <label for="request-webhook">Database Webhook URL (Optional)</label>
-              <input id="request-webhook" type="url" placeholder="https://your-api.com/ingest">
+              <input id="request-webhook" name="webhook" type="url" placeholder="https://your-api.com/ingest">
             </div>
           </div>
           <div class="form-actions">
-            <a class="btn btn-primary" id="request-link" href="#">Create Request →</a>
+            <button type="submit" class="btn btn-primary" id="request-link" style="border:none;font-family:inherit;font-size:1rem;cursor:pointer;">Scrape Now →</button>
           </div>
           <div class="form-note">
-            You'll be redirected to submit a request. A GitHub account is required for identity verification. Your request is processed automatically by our cloud pipeline.
+            Your request is processed locally. Images will be stored in your gallery instantly.
           </div>
-        </div>
+        </form>
       </div>
     </section>
 
@@ -796,60 +796,6 @@
     </footer>
 
     <script>
-      const owner = location.hostname.endsWith(".github.io")
-        ? location.hostname.split(".")[0]
-        : "Momin-Khannn";
-      const repo = location.pathname.split("/").filter(Boolean)[0] || "image-scraper";
-      const repoUrl = `https://github.com/${owner}/${repo}`;
-      const requestUrl = document.getElementById("request-url");
-      const requestMax = document.getElementById("request-max");
-      const requestMode = document.getElementById("request-mode");
-      const requestSelection = document.getElementById("request-selection");
-      const requestWebhook = document.getElementById("request-webhook");
-      const requestLink = document.getElementById("request-link");
-
-      function buildIssueUrl() {
-        const target = requestUrl.value.trim();
-        const maxImages = Math.max(1, Math.min(200, Number(requestMax.value || 50)));
-        const mode = requestMode.value === "all" ? "All images per product" : "First image per product";
-        const titleTarget = target ? ` ${target.replace(/^https?:\/\//, "").slice(0, 60)}` : "";
-        const body = [
-          "### Website URL",
-          "",
-          target || "https://example.com",
-          "",
-          "### Maximum images",
-          "",
-          String(maxImages),
-          "",
-          "### Shopify image mode",
-          "",
-          mode,
-          "",
-          "### Public permission",
-          "",
-          "- [x] I confirm I am allowed to scrape and publicly publish images from this URL."
-        ];
-        
-        if (requestSelection.value.trim()) {
-          body.splice(12, 0, "### Image selection", "", requestSelection.value.trim(), "");
-        }
-        
-        if (requestWebhook.value.trim()) {
-          const insertIdx = body.indexOf("### Public permission");
-          body.splice(insertIdx, 0, "### Webhook URL", "", requestWebhook.value.trim(), "");
-        }
-        
-        requestLink.href = `${repoUrl}/issues/new?title=${encodeURIComponent(`[Scrape Request]${titleTarget}`)}&body=${encodeURIComponent(body.join("\n"))}`;
-      }
-
-      requestUrl.addEventListener("input", buildIssueUrl);
-      requestMax.addEventListener("input", buildIssueUrl);
-      requestMode.addEventListener("change", buildIssueUrl);
-      requestSelection.addEventListener("input", buildIssueUrl);
-      requestWebhook.addEventListener("input", buildIssueUrl);
-      buildIssueUrl();
-
       // Smooth scroll for anchor links
       document.querySelectorAll('a[href^="#"]').forEach(link => {
         link.addEventListener("click", e => {

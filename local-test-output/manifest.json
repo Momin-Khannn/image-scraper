@@ -1,0 +1,53 @@
+{
+  "target_url": "https://scrapeme.live/shop/",
+  "strategy": "html",
+  "started_at": "2026-06-14T14:13:17.227757+00:00",
+  "finished_at": "2026-06-14T14:13:44.984641+00:00",
+  "max_images": 5,
+  "all_shopify_images": false,
+  "image_selection": null,
+  "discovered_count": 16,
+  "attempted_count": 5,
+  "downloaded_count": 5,
+  "failed_count": 0,
+  "skipped_count": 11,
+  "warnings": [],
+  "images": [
+    {
+      "source_url": "https://scrapeme.live/wp-content/uploads/2018/08/001.png",
+      "filename": "001.png",
+      "relative_path": "001.png",
+      "bytes": 203385,
+      "content_type": "image/png"
+    },
+    {
+      "source_url": "https://scrapeme.live/wp-content/uploads/2018/08/002.png",
+      "filename": "002.png",
+      "relative_path": "002.png",
+      "bytes": 202759,
+      "content_type": "image/png"
+    },
+    {
+      "source_url": "https://scrapeme.live/wp-content/uploads/2018/08/003.png",
+      "filename": "003.png",
+      "relative_path": "003.png",
+      "bytes": 186011,
+      "content_type": "image/png"
+    },
+    {
+      "source_url": "https://scrapeme.live/wp-content/uploads/2018/08/004.png",
+      "filename": "004.png",
+      "relative_path": "004.png",
+      "bytes": 137817,
+      "content_type": "image/png"
+    },
+    {
+      "source_url": "https://scrapeme.live/wp-content/uploads/2018/08/005.png",
+      "filename": "005.png",
+      "relative_path": "005.png",
+      "bytes": 130334,
+      "content_type": "image/png"
+    }
+  ],
+  "failures": []
+}
