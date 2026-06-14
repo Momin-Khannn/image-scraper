@@ -41,16 +41,20 @@ jobs:
         id: request
         run: image-scraper-request --event-path "$GITHUB_EVENT_PATH" --output-json request.json --github-output "$GITHUB_OUTPUT"
 
-      - name: Run scraper
+      - name: Run Image Scraper
         id: scrape
-        continue-on-error: true
         run: |
-          mkdir -p output
-          args=("${{ steps.request.outputs.target_url }}" --output-dir output --max-images "${{ steps.request.outputs.max_images }}")
-          if [ "${{ steps.request.outputs.all_shopify_images }}" = "true" ]; then
-            args+=(--all-shopify-images)
+          ARGS="--output-dir ${{ runner.temp }}/scraped-images --max-images ${{ steps.parse.outputs.max_images }}"
+          if [ "${{ steps.parse.outputs.all_shopify_images }}" == "true" ]; then
+            ARGS="$ARGS --all-shopify-images"
           fi
-          image-scraper "${args[@]}"
+          if [ -n "${{ steps.parse.outputs.image_selection }}" ] && [ "${{ steps.parse.outputs.image_selection }}" != "null" ]; then
+            ARGS="$ARGS --image-selection '${{ steps.parse.outputs.image_selection }}'"
+          fi
+          if [ -n "${{ steps.parse.outputs.webhook_url }}" ] && [ "${{ steps.parse.outputs.webhook_url }}" != "null" ]; then
+            ARGS="$ARGS --webhook-url '${{ steps.parse.outputs.webhook_url }}'"
+          fi
+          image-scraper "${{ steps.parse.outputs.target_url }}" $ARGS
 
       - name: Upload scraped images
         if: always()

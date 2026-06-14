@@ -30,12 +30,23 @@ example.com
 
 ### Maximum images
 
-999
+30
 
 ### Shopify image mode
 
 All images per product
-""",
+
+### Image selection
+
+1-5, 10-
+
+### Webhook URL
+
+https://my-database.com/api/ingest
+
+### Public permission
+
+- [x] I confirm I am allowed to scrape and publicly publish images from this URL.""",
             "user": {"login": "visitor"},
         }
     }
@@ -44,6 +55,8 @@ All images per product
 
     assert request["issue_number"] == 42
     assert request["target_url"] == "https://example.com"
-    assert request["max_images"] == 200
+    assert request["max_images"] == 30
     assert request["all_shopify_images"] is True
+    assert request["image_selection"] == "1-5, 10-"
+    assert request["webhook_url"] == "https://my-database.com/api/ingest"
     assert request["gallery_subdir"] == "requests/issue-42"

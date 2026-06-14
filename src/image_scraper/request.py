@@ -72,6 +72,8 @@ def parse_event(event: dict[str, Any]) -> dict[str, Any]:
         "target_url": target_url,
         "max_images": max_images,
         "all_shopify_images": all_shopify_images,
+        "image_selection": section_value(sections, "Image selection"),
+        "webhook_url": section_value(sections, "Webhook URL"),
         "gallery_subdir": f"requests/issue-{issue_number}",
     }
 

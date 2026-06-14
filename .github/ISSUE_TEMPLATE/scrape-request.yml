@@ -29,11 +29,24 @@ body:
       label: Shopify image mode
       description: Choose how Shopify product images should be collected.
       options:
-        - First image per product
-        - All images per product
-      default: 0
+        - "First image per product"
+        - "All images per product"
+  - type: input
+    id: image_selection
+    attributes:
+      label: Image selection
+      description: "Optional. Which images to scrape. e.g. '1-5' for first 5, '1-5, 10-' for 1-5 and 10+."
+      placeholder: "_None_"
     validations:
-      required: true
+      required: false
+  - type: input
+    id: webhook_url
+    attributes:
+      label: Webhook URL
+      description: "Optional. Send results and images directly to your database or API."
+      placeholder: "_None_"
+    validations:
+      required: false
   - type: checkboxes
     id: public-permission
     attributes:

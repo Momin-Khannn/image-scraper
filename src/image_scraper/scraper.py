@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
@@ -207,6 +208,58 @@ def unique_in_order(values: list[str]) -> list[str]:
     return result
 
 
+def parse_image_selection(pattern: str) -> set[int]:
+    """Parse a selection string like '1-5, 8, 10-' into a set of 1-based indices.
+    
+    If no upper bound is given (e.g. '10-'), it returns a special large number (1_000_000) 
+    in the set to indicate 'and everything after'. This is handled by filter_by_selection.
+    """
+    if not pattern or not pattern.strip():
+        return set()
+        
+    indices = set()
+    parts = pattern.replace(' ', '').split(',')
+    
+    for part in parts:
+        if not part:
+            continue
+        if '-' in part:
+            start_str, end_str = part.split('-', 1)
+            try:
+                start = int(start_str) if start_str else 1
+                end = int(end_str) if end_str else 1_000_000
+                if start > 0 and end >= start:
+                    indices.update(range(start, end + 1))
+            except ValueError:
+                continue
+        else:
+            try:
+                val = int(part)
+                if val > 0:
+                    indices.add(val)
+            except ValueError:
+                continue
+    return indices
+
+
+def filter_by_selection(urls: list[str], selection_pattern: str | None) -> list[str]:
+    if not selection_pattern or not selection_pattern.strip():
+        return urls
+        
+    indices = parse_image_selection(selection_pattern)
+    if not indices:
+        return urls
+        
+    has_open_end = 1_000_000 in indices
+    filtered_urls = []
+    
+    for i, url in enumerate(urls, start=1):
+        if i in indices or (has_open_end and i >= max((idx for idx in indices if idx != 1_000_000), default=0)):
+            filtered_urls.append(url)
+            
+    return filtered_urls
+
+
 def extract_image_urls_from_html(html: str, base_url: str) -> ExtractedImages:
     soup = BeautifulSoup(html, "html.parser")
     urls: list[str] = []
@@ -409,10 +462,10 @@ def write_json(path: Path, data: dict[str, Any]) -> None:
 def build_report(
     *,
     target_url: str,
-    output_dir: Path,
     strategy: str,
     max_images: int,
     all_shopify_images: bool,
+    image_selection: str | None = None,
     started_at: str,
     candidate_urls: list[str],
     warnings: list[str],
@@ -428,7 +481,7 @@ def build_report(
         "finished_at": utc_now_iso(),
         "max_images": max_images,
         "all_shopify_images": all_shopify_images,
-        "output_dir": str(output_dir),
+        "image_selection": image_selection,
         "discovered_count": discovered,
         "attempted_count": len(candidate_urls),
         "downloaded_count": len(images),
@@ -440,12 +493,41 @@ def build_report(
     }
 
 
+def send_webhook(webhook_url: str, report: dict[str, Any], output_dir: Path) -> None:
+    """Send the scrape report and base64 encoded images to a webhook URL."""
+    if not webhook_url:
+        return
+
+    payload = dict(report)
+    images_with_data = []
+
+    for img in payload.get("images", []):
+        img_copy = dict(img)
+        img_path = output_dir / img["filename"]
+        if img_path.exists():
+            try:
+                with img_path.open("rb") as f:
+                    img_copy["base64_data"] = base64.b64encode(f.read()).decode("utf-8")
+            except Exception as e:
+                img_copy["webhook_error"] = f"Failed to encode image: {e}"
+        images_with_data.append(img_copy)
+        
+    payload["images"] = images_with_data
+
+    try:
+        requests.post(webhook_url, json=payload, timeout=30)
+    except requests.RequestException as e:
+        print(f"Webhook delivery failed: {e}")
+
+
 def scrape_site(
     target_url: str,
     output_dir: str | Path,
     *,
     max_images: int = 200,
     all_shopify_images: bool = False,
+    image_selection: str | None = None,
+    webhook_url: str | None = None,
     report_json: str | Path | None = None,
     session: requests.Session | None = None,
 ) -> dict[str, Any]:
@@ -471,7 +553,7 @@ def scrape_site(
 
     if shopify_urls is not None:
         strategy = "shopify_api"
-        candidate_urls = shopify_urls[:max_images]
+        candidate_urls = filter_by_selection(shopify_urls, image_selection)[:max_images]
         discovered_count = len(shopify_urls)
     else:
         try:
@@ -484,7 +566,7 @@ def scrape_site(
             extracted = extract_image_urls_from_html(response.text, normalized_url)
             warnings.extend(extracted.warnings)
             discovered_count = len(extracted.urls)
-            candidate_urls = extracted.urls[:max_images]
+            candidate_urls = filter_by_selection(extracted.urls, image_selection)[:max_images]
 
     images: list[dict[str, Any]] = []
     failures: list[dict[str, str]] = []
@@ -502,10 +584,10 @@ def scrape_site(
 
     report = build_report(
         target_url=normalized_url,
-        output_dir=output_path,
         strategy=strategy,
         max_images=max_images,
         all_shopify_images=all_shopify_images,
+        image_selection=image_selection,
         started_at=started_at,
         candidate_urls=candidate_urls,
         warnings=warnings,
@@ -517,5 +599,8 @@ def scrape_site(
     write_json(output_path / "manifest.json", report)
     if report_json:
         write_json(Path(report_json), report)
+
+    if webhook_url:
+        send_webhook(webhook_url, report, output_path)
 
     return report

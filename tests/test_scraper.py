@@ -13,6 +13,8 @@ from image_scraper.scraper import (
     parse_srcset,
     scrape_site,
     unique_in_order,
+    parse_image_selection,
+    filter_by_selection,
 )
 
 
@@ -76,7 +78,31 @@ def test_filename_from_url_sanitizes_and_uses_content_type_extension():
     assert filename == "My_Product_One.webp"
 
 
-def test_unique_in_order_preserves_first_seen_values():
+def test_parse_image_selection_and_filter() -> None:
+    urls = [f"url{i}" for i in range(1, 11)]  # url1 to url10
+    
+    # Empty pattern -> all urls
+    assert filter_by_selection(urls, "") == urls
+    assert filter_by_selection(urls, None) == urls
+    
+    # Specific numbers
+    assert filter_by_selection(urls, "1") == ["url1"]
+    assert filter_by_selection(urls, "1,3,5") == ["url1", "url3", "url5"]
+    
+    # Ranges
+    assert filter_by_selection(urls, "2-4") == ["url2", "url3", "url4"]
+    assert filter_by_selection(urls, "1-3, 8-9") == ["url1", "url2", "url3", "url8", "url9"]
+    
+    # Open-ended
+    assert filter_by_selection(urls, "8-") == ["url8", "url9", "url10"]
+    assert filter_by_selection(urls, "1-2, 9-") == ["url1", "url2", "url9", "url10"]
+    
+    # Out of bounds and garbage
+    assert filter_by_selection(urls, "15-20") == []
+    assert filter_by_selection(urls, "1-2, foo, 4") == ["url1", "url2", "url4"]
+
+
+def test_unique_in_order_preserves_first_seen_values() -> None:
     assert unique_in_order(["a", "b", "a", "c", "b"]) == ["a", "b", "c"]
 
 

@@ -11,22 +11,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
       :root {
-        --ink: #e8ecf1;
-        --ink-strong: #ffffff;
-        --muted: #94a3b8;
-        --line: rgba(255,255,255,0.08);
-        --line-solid: #2a3444;
-        --surface: rgba(255,255,255,0.04);
-        --glass: rgba(15,25,40,0.55);
-        --glass-border: rgba(255,255,255,0.08);
-        --accent: #2dd4bf;
-        --accent-dark: #14b8a6;
-        --accent-glow: rgba(45,212,191,0.15);
-        --rose: #fb7185;
-        --amber: #fbbf24;
-        --violet: #a78bfa;
-        --bg-primary: #0a0f1a;
-        --bg-card: rgba(15,23,42,0.6);
+        --ink: #334155;
+        --ink-strong: #0f172a;
+        --muted: #64748b;
+        --line: rgba(0,0,0,0.08);
+        --line-solid: #e2e8f0;
+        --surface: #f8fafc;
+        --glass: rgba(255,255,255,0.7);
+        --glass-border: rgba(0,0,0,0.05);
+        --accent: #0ea5e9;
+        --accent-dark: #0284c7;
+        --accent-glow: rgba(14,165,233,0.15);
+        --rose: #f43f5e;
+        --amber: #f59e0b;
+        --violet: #8b5cf6;
+        --bg-primary: #ffffff;
+        --bg-card: #ffffff;
         --radius: 16px;
         --radius-sm: 10px;
       }
@@ -50,8 +50,8 @@
         inset: 0;
         z-index: 0;
         background-image:
-          linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+          linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
         background-size: 64px 64px;
         pointer-events: none;
       }
@@ -66,9 +66,9 @@
         animation: float 20s ease-in-out infinite;
       }
 
-      .orb-1 { width: 600px; height: 600px; top: -120px; left: -100px; background: #0f766e; animation-delay: 0s; }
-      .orb-2 { width: 500px; height: 500px; bottom: -80px; right: -80px; background: #7c3aed; animation-delay: -7s; }
-      .orb-3 { width: 400px; height: 400px; top: 40%; left: 50%; background: #0ea5e9; animation-delay: -14s; opacity: 0.15; }
+      .orb-1 { width: 600px; height: 600px; top: -120px; left: -100px; background: #38bdf8; animation-delay: 0s; opacity: 0.15; }
+      .orb-2 { width: 500px; height: 500px; bottom: -80px; right: -80px; background: #a78bfa; animation-delay: -7s; opacity: 0.15; }
+      .orb-3 { width: 400px; height: 400px; top: 40%; left: 50%; background: #34d399; animation-delay: -14s; opacity: 0.1; }
 
       @keyframes float {
         0%, 100% { transform: translate(0, 0) scale(1); }
@@ -95,7 +95,7 @@
         padding: 0 24px;
         backdrop-filter: blur(20px) saturate(180%);
         -webkit-backdrop-filter: blur(20px) saturate(180%);
-        background: rgba(10,15,26,0.72);
+        background: rgba(255,255,255,0.85);
         border-bottom: 1px solid var(--glass-border);
       }
 
@@ -151,7 +151,7 @@
 
       .nav-links .btn-nav {
         background: var(--accent);
-        color: #0a1628;
+        color: #ffffff;
         font-weight: 700;
         padding: 8px 20px;
         border-radius: 999px;
@@ -160,7 +160,7 @@
 
       .nav-links .btn-nav:hover {
         background: var(--accent);
-        color: #0a1628;
+        color: #ffffff;
         transform: translateY(-1px);
         box-shadow: 0 4px 24px var(--accent-glow);
       }
@@ -253,7 +253,7 @@
 
       .btn-primary {
         background: linear-gradient(135deg, var(--accent-dark), var(--accent));
-        color: #0a1628;
+        color: #ffffff;
         box-shadow: 0 4px 32px var(--accent-glow);
       }
 
@@ -268,8 +268,8 @@
       }
 
       .btn-ghost:hover {
-        background: rgba(255,255,255,0.08);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        background: var(--surface);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
       }
 
       /* ─── Stats Bar ─── */
@@ -342,7 +342,7 @@
       .feature-card:hover {
         transform: translateY(-4px);
         border-color: rgba(45,212,191,0.2);
-        box-shadow: 0 12px 48px rgba(0,0,0,0.3);
+        box-shadow: 0 12px 48px rgba(0,0,0,0.08);
       }
 
       .feature-icon {
@@ -499,7 +499,7 @@
         padding: 0 16px;
         border-radius: var(--radius-sm);
         border: 1px solid var(--line-solid);
-        background: rgba(255,255,255,0.04);
+        background: #ffffff;
         color: var(--ink-strong);
         font: inherit;
         font-size: 0.95rem;
@@ -518,7 +518,7 @@
       }
 
       .form-group select option {
-        background: #1e293b;
+        background: #ffffff;
         color: var(--ink);
       }
 
@@ -769,7 +769,13 @@
               <select id="request-mode">
                 <option value="first">First per product</option>
                 <option value="all">All per product</option>
-              </select>
+            <div class="form-group">
+              <label for="request-selection">Image Selection</label>
+              <input id="request-selection" type="text" placeholder="e.g. 1-5, 9-">
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1; margin-top: 4px;">
+              <label for="request-webhook">Database Webhook URL (Optional)</label>
+              <input id="request-webhook" type="url" placeholder="https://your-api.com/ingest">
             </div>
           </div>
           <div class="form-actions">
@@ -798,6 +804,8 @@
       const requestUrl = document.getElementById("request-url");
       const requestMax = document.getElementById("request-max");
       const requestMode = document.getElementById("request-mode");
+      const requestSelection = document.getElementById("request-selection");
+      const requestWebhook = document.getElementById("request-webhook");
       const requestLink = document.getElementById("request-link");
 
       function buildIssueUrl() {
@@ -821,13 +829,25 @@
           "### Public permission",
           "",
           "- [x] I confirm I am allowed to scrape and publicly publish images from this URL."
-        ].join("\n");
-        requestLink.href = `${repoUrl}/issues/new?title=${encodeURIComponent(`[Scrape Request]${titleTarget}`)}&body=${encodeURIComponent(body)}`;
+        ];
+        
+        if (requestSelection.value.trim()) {
+          body.splice(12, 0, "### Image selection", "", requestSelection.value.trim(), "");
+        }
+        
+        if (requestWebhook.value.trim()) {
+          const insertIdx = body.indexOf("### Public permission");
+          body.splice(insertIdx, 0, "### Webhook URL", "", requestWebhook.value.trim(), "");
+        }
+        
+        requestLink.href = `${repoUrl}/issues/new?title=${encodeURIComponent(`[Scrape Request]${titleTarget}`)}&body=${encodeURIComponent(body.join("\n"))}`;
       }
 
       requestUrl.addEventListener("input", buildIssueUrl);
       requestMax.addEventListener("input", buildIssueUrl);
       requestMode.addEventListener("change", buildIssueUrl);
+      requestSelection.addEventListener("input", buildIssueUrl);
+      requestWebhook.addEventListener("input", buildIssueUrl);
       buildIssueUrl();
 
       // Smooth scroll for anchor links

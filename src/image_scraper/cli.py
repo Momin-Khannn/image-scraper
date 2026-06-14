@@ -33,6 +33,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Download every Shopify product image instead of only each product's first image.",
     )
     parser.add_argument(
+        "--image-selection",
+        help="Pattern to select images (e.g. '1-5, 9-'). Default: all",
+    )
+    parser.add_argument(
+        "--webhook-url",
+        help="URL to POST results and base64 images to.",
+    )
+    parser.add_argument(
         "--report-json",
         help="Optional extra path where the run metadata JSON should also be written.",
     )
@@ -49,6 +57,8 @@ def main(argv: list[str] | None = None) -> int:
             output_dir=Path(args.output_dir),
             max_images=args.max_images,
             all_shopify_images=args.all_shopify_images,
+            image_selection=args.image_selection,
+            webhook_url=args.webhook_url,
             report_json=Path(args.report_json) if args.report_json else None,
         )
     except ValueError as exc:

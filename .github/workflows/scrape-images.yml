@@ -15,8 +15,18 @@ on:
       all_shopify_images:
         description: "Download every Shopify product image instead of only the first image per product"
         required: false
-        default: false
         type: boolean
+        default: false
+      image_selection:
+        description: "Image selection pattern (e.g. 1-5, 9-)"
+        required: false
+        type: string
+        default: ""
+      webhook_url:
+        description: "Webhook URL to send results to"
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -49,18 +59,20 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install .
 
-      - name: Run scraper
-        env:
-          TARGET_URL: ${{ inputs.target_url }}
-          MAX_IMAGES: ${{ inputs.max_images }}
-          ALL_SHOPIFY_IMAGES: ${{ inputs.all_shopify_images }}
+      - name: Run Image Scraper
+        id: scrape
         run: |
-          mkdir -p output
-          args=("$TARGET_URL" --output-dir output --max-images "$MAX_IMAGES")
-          if [ "$ALL_SHOPIFY_IMAGES" = "true" ]; then
-            args+=(--all-shopify-images)
+          ARGS="--output-dir ${{ runner.temp }}/scraped-images --max-images ${{ inputs.max_images || 200 }}"
+          if [ "${{ inputs.all_shopify_images }}" == "true" ]; then
+            ARGS="$ARGS --all-shopify-images"
           fi
-          image-scraper "${args[@]}"
+          if [ -n "${{ inputs.image_selection }}" ]; then
+            ARGS="$ARGS --image-selection '${{ inputs.image_selection }}'"
+          fi
+          if [ -n "${{ inputs.webhook_url }}" ]; then
+            ARGS="$ARGS --webhook-url '${{ inputs.webhook_url }}'"
+          fi
+          image-scraper "${{ inputs.target_url }}" $ARGS
 
       - name: Upload scraped images
         if: always()
