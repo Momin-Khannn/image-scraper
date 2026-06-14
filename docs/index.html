@@ -3,361 +3,790 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="A GitHub Actions powered image scraper that publishes a public static gallery and downloadable run artifacts.">
-    <title>Image Scraper Actions</title>
+    <meta name="description" content="Image Scraper — a cloud-powered image collection service that automatically downloads, packages, and publishes product images from any website.">
+    <title>Image Scraper — Cloud-Powered Image Collection</title>
+    <link rel="icon" href="logo.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
       :root {
-        color-scheme: light;
-        --ink: #18202a;
-        --muted: #617083;
-        --line: #d9e2ec;
-        --paper: #f8fafc;
-        --panel: #ffffff;
-        --accent: #0f766e;
-        --accent-dark: #0b4f49;
-        --sun: #f4b942;
-        --rose: #d45b6d;
+        --ink: #e8ecf1;
+        --ink-strong: #ffffff;
+        --muted: #94a3b8;
+        --line: rgba(255,255,255,0.08);
+        --line-solid: #2a3444;
+        --surface: rgba(255,255,255,0.04);
+        --glass: rgba(15,25,40,0.55);
+        --glass-border: rgba(255,255,255,0.08);
+        --accent: #2dd4bf;
+        --accent-dark: #14b8a6;
+        --accent-glow: rgba(45,212,191,0.15);
+        --rose: #fb7185;
+        --amber: #fbbf24;
+        --violet: #a78bfa;
+        --bg-primary: #0a0f1a;
+        --bg-card: rgba(15,23,42,0.6);
+        --radius: 16px;
+        --radius-sm: 10px;
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html { scroll-behavior: smooth; }
 
       body {
-        margin: 0;
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
         color: var(--ink);
-        background: var(--paper);
-        letter-spacing: 0;
+        background: var(--bg-primary);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
       }
 
-      .hero {
-        min-height: 82vh;
-        display: grid;
-        align-items: center;
-        padding: 40px 20px 56px;
-        background:
-          linear-gradient(90deg, rgba(248, 250, 252, 0.96), rgba(248, 250, 252, 0.78) 54%, rgba(248, 250, 252, 0.3)),
-          url("https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1800&q=80") center / cover;
-        border-bottom: 1px solid var(--line);
+      /* ─── Animated Background ─── */
+      .bg-grid {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size: 64px 64px;
+        pointer-events: none;
       }
 
-      .hero-inner,
-      .section {
-        width: min(1120px, 100%);
+      .orb {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.3;
+        pointer-events: none;
+        z-index: 0;
+        animation: float 20s ease-in-out infinite;
+      }
+
+      .orb-1 { width: 600px; height: 600px; top: -120px; left: -100px; background: #0f766e; animation-delay: 0s; }
+      .orb-2 { width: 500px; height: 500px; bottom: -80px; right: -80px; background: #7c3aed; animation-delay: -7s; }
+      .orb-3 { width: 400px; height: 400px; top: 40%; left: 50%; background: #0ea5e9; animation-delay: -14s; opacity: 0.15; }
+
+      @keyframes float {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -40px) scale(1.05); }
+        66% { transform: translate(-20px, 20px) scale(0.95); }
+      }
+
+      /* ─── Layout ─── */
+      .wrap {
+        width: min(1140px, 100%);
         margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 1;
       }
 
-      .hero-copy {
-        max-width: 680px;
+      /* ─── Navbar ─── */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        padding: 0 24px;
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        background: rgba(10,15,26,0.72);
+        border-bottom: 1px solid var(--glass-border);
       }
 
-      .eyebrow {
-        color: var(--accent-dark);
-        font-size: 0.82rem;
+      .nav-inner {
+        width: min(1140px, 100%);
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 64px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: var(--ink-strong);
+      }
+
+      .brand img {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+      }
+
+      .brand span {
         font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
+        font-size: 1.15rem;
+        letter-spacing: -0.02em;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .nav-links a {
+        padding: 8px 16px;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: color 0.2s, background 0.2s;
+      }
+
+      .nav-links a:hover {
+        color: var(--ink-strong);
+        background: var(--surface);
+      }
+
+      .nav-links .btn-nav {
+        background: var(--accent);
+        color: #0a1628;
+        font-weight: 700;
+        padding: 8px 20px;
+        border-radius: 999px;
+        transition: transform 0.15s, box-shadow 0.2s;
+      }
+
+      .nav-links .btn-nav:hover {
+        background: var(--accent);
+        color: #0a1628;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 24px var(--accent-glow);
+      }
+
+      /* ─── Hero ─── */
+      .hero {
+        padding: 160px 0 100px;
+        text-align: center;
+        position: relative;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 18px 6px 8px;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1px solid var(--glass-border);
+        color: var(--accent);
+        font-size: 0.82rem;
+        font-weight: 600;
+        margin-bottom: 28px;
+        letter-spacing: 0.02em;
+      }
+
+      .badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse-dot 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse-dot {
+        0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--accent-glow); }
+        50% { opacity: 0.6; box-shadow: 0 0 0 8px transparent; }
       }
 
       h1 {
-        margin: 12px 0 18px;
-        font-size: clamp(2.6rem, 7vw, 5.8rem);
-        line-height: 0.95;
-        letter-spacing: 0;
+        font-size: clamp(2.8rem, 7vw, 5.2rem);
+        font-weight: 900;
+        color: var(--ink-strong);
+        line-height: 1;
+        letter-spacing: -0.03em;
+        margin-bottom: 24px;
       }
 
-      .lead {
-        margin: 0 0 28px;
-        max-width: 620px;
-        color: #344357;
-        font-size: clamp(1.05rem, 2.4vw, 1.35rem);
-        line-height: 1.58;
+      h1 .gradient {
+        background: linear-gradient(135deg, var(--accent), #0ea5e9, var(--violet));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
 
-      .actions {
+      .hero-lead {
+        max-width: 600px;
+        margin: 0 auto 40px;
+        color: var(--muted);
+        font-size: clamp(1.05rem, 2vw, 1.25rem);
+        line-height: 1.7;
+      }
+
+      .hero-actions {
         display: flex;
+        justify-content: center;
+        gap: 14px;
         flex-wrap: wrap;
-        gap: 12px;
       }
 
-      .button {
+      .btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 44px;
-        padding: 0 18px;
-        border-radius: 6px;
-        border: 1px solid var(--accent);
-        background: var(--accent);
-        color: #ffffff;
+        gap: 8px;
+        min-height: 50px;
+        padding: 0 28px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.95rem;
         text-decoration: none;
-        font-weight: 800;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.25s;
       }
 
-      .button.secondary {
-        background: rgba(255, 255, 255, 0.82);
-        color: var(--accent-dark);
+      .btn:hover {
+        transform: translateY(-2px);
       }
 
-      main {
-        padding: 46px 20px 70px;
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+        color: #0a1628;
+        box-shadow: 0 4px 32px var(--accent-glow);
       }
 
-      .status-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 16px;
+      .btn-primary:hover {
+        box-shadow: 0 8px 40px rgba(45,212,191,0.3);
       }
 
-      .tile {
-        min-height: 160px;
-        padding: 22px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
-      }
-
-      .tile strong {
-        display: block;
-        margin-bottom: 10px;
-        font-size: 1.05rem;
-      }
-
-      .tile p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.55;
-      }
-
-      .stripe {
-        margin-top: 24px;
-        padding: 18px 20px;
-        border-left: 5px solid var(--sun);
-        background: #fff8e4;
-        color: #493916;
-      }
-
-      .request-panel {
-        margin-top: 32px;
-        padding: 24px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
-      }
-
-      .request-panel h2 {
-        margin: 0 0 10px;
-        font-size: 1.45rem;
-        letter-spacing: 0;
-      }
-
-      .request-panel p {
-        margin: 0 0 18px;
-        color: var(--muted);
-        line-height: 1.55;
-      }
-
-      .request-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(140px, 0.6fr) minmax(180px, 0.8fr) auto;
-        gap: 12px;
-        align-items: end;
-      }
-
-      label {
-        display: grid;
-        gap: 6px;
-        color: #344357;
-        font-size: 0.88rem;
-        font-weight: 800;
-      }
-
-      input,
-      select {
-        width: 100%;
-        min-height: 44px;
-        padding: 0 12px;
-        border: 1px solid var(--line);
-        border-radius: 6px;
-        background: #ffffff;
+      .btn-ghost {
+        background: var(--surface);
         color: var(--ink);
-        font: inherit;
+        border: 1px solid var(--glass-border);
       }
 
-      .request-note {
-        margin-top: 14px;
-        color: var(--muted);
-        font-size: 0.92rem;
+      .btn-ghost:hover {
+        background: rgba(255,255,255,0.08);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
       }
 
-      .pipeline {
-        margin-top: 32px;
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        overflow: hidden;
-        background: var(--panel);
-      }
-
-      .step {
-        min-height: 130px;
-        padding: 20px;
-        border-right: 1px solid var(--line);
-      }
-
-      .step:last-child {
-        border-right: 0;
-      }
-
-      .step span {
-        display: inline-flex;
-        width: 32px;
-        height: 32px;
-        align-items: center;
+      /* ─── Stats Bar ─── */
+      .stats {
+        display: flex;
         justify-content: center;
-        margin-bottom: 14px;
-        border-radius: 50%;
-        color: #ffffff;
-        background: var(--rose);
-        font-weight: 800;
-      }
-
-      .step h2 {
-        margin: 0 0 8px;
-        font-size: 1rem;
-      }
-
-      .step p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.48;
-      }
-
-      footer {
-        padding: 26px 20px;
+        gap: 48px;
+        margin-top: 72px;
+        padding-top: 40px;
         border-top: 1px solid var(--line);
-        color: var(--muted);
-        background: #ffffff;
+      }
+
+      .stat {
         text-align: center;
       }
 
-      @media (max-width: 820px) {
-        .hero {
-          min-height: 78vh;
-          background:
-            linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(248, 250, 252, 0.82)),
-            url("https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80") center / cover;
+      .stat-value {
+        display: block;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--ink-strong);
+        letter-spacing: -0.02em;
+      }
+
+      .stat-label {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      /* ─── Section Titles ─── */
+      .section-header {
+        text-align: center;
+        margin-bottom: 56px;
+      }
+
+      .section-header h2 {
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        font-weight: 800;
+        color: var(--ink-strong);
+        letter-spacing: -0.02em;
+        margin-bottom: 16px;
+      }
+
+      .section-header p {
+        max-width: 560px;
+        margin: 0 auto;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      /* ─── Features Grid ─── */
+      .features { padding: 100px 0; }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+
+      .feature-card {
+        padding: 32px 28px;
+        border-radius: var(--radius);
+        background: var(--bg-card);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(12px);
+        transition: transform 0.25s, border-color 0.3s, box-shadow 0.3s;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(45,212,191,0.2);
+        box-shadow: 0 12px 48px rgba(0,0,0,0.3);
+      }
+
+      .feature-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+      }
+
+      .fi-teal { background: rgba(45,212,191,0.12); color: var(--accent); }
+      .fi-rose { background: rgba(251,113,133,0.12); color: var(--rose); }
+      .fi-amber { background: rgba(251,191,36,0.12); color: var(--amber); }
+      .fi-violet { background: rgba(167,139,250,0.12); color: var(--violet); }
+      .fi-blue { background: rgba(56,189,248,0.12); color: #38bdf8; }
+      .fi-green { background: rgba(74,222,128,0.12); color: #4ade80; }
+
+      .feature-card h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--ink-strong);
+        margin-bottom: 10px;
+      }
+
+      .feature-card p {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.6;
+      }
+
+      /* ─── Pipeline ─── */
+      .pipeline { padding: 100px 0; }
+
+      .pipeline-steps {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        position: relative;
+      }
+
+      .pipeline-steps::before {
+        content: '';
+        position: absolute;
+        top: 40px;
+        left: 12%;
+        right: 12%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--violet));
+        opacity: 0.3;
+        z-index: 0;
+      }
+
+      .pipe-step {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .pipe-num {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: inline-grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 1.1rem;
+        margin-bottom: 18px;
+        border: 2px solid var(--glass-border);
+        background: var(--bg-primary);
+        color: var(--accent);
+        transition: background 0.3s, border-color 0.3s, color 0.3s;
+      }
+
+      .pipe-step:hover .pipe-num {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--bg-primary);
+      }
+
+      .pipe-step h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--ink-strong);
+        margin-bottom: 8px;
+      }
+
+      .pipe-step p {
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.55;
+        padding: 0 8px;
+      }
+
+      /* ─── Request Panel ─── */
+      .request { padding: 100px 0; }
+
+      .request-card {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 48px 44px;
+        border-radius: var(--radius);
+        background: var(--bg-card);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(16px);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .request-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), var(--violet));
+      }
+
+      .request-card h2 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--ink-strong);
+        margin-bottom: 8px;
+      }
+
+      .request-card > p {
+        color: var(--muted);
+        margin-bottom: 32px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 140px 180px;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 8px;
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        min-height: 48px;
+        padding: 0 16px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--line-solid);
+        background: rgba(255,255,255,0.04);
+        color: var(--ink-strong);
+        font: inherit;
+        font-size: 0.95rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+      }
+
+      .form-group input::placeholder {
+        color: #475569;
+      }
+
+      .form-group select option {
+        background: #1e293b;
+        color: var(--ink);
+      }
+
+      .form-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 28px;
+      }
+
+      .form-note {
+        color: #475569;
+        font-size: 0.82rem;
+        margin-top: 20px;
+        line-height: 1.5;
+      }
+
+      /* ─── Footer ─── */
+      footer {
+        padding: 40px 24px;
+        text-align: center;
+        color: #475569;
+        font-size: 0.88rem;
+        border-top: 1px solid var(--line);
+      }
+
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      /* ─── Responsive ─── */
+      @media (max-width: 860px) {
+        .features-grid {
+          grid-template-columns: 1fr 1fr;
         }
 
-        .status-grid,
-        .request-grid,
-        .pipeline {
+        .pipeline-steps {
+          grid-template-columns: 1fr 1fr;
+          gap: 32px;
+        }
+
+        .pipeline-steps::before { display: none; }
+
+        .form-grid {
           grid-template-columns: 1fr;
         }
 
-        .step {
-          border-right: 0;
-          border-bottom: 1px solid var(--line);
+        .stats {
+          gap: 28px;
         }
 
-        .step:last-child {
-          border-bottom: 0;
+        .nav-links a:not(.btn-nav) { display: none; }
+      }
+
+      @media (max-width: 560px) {
+        .features-grid {
+          grid-template-columns: 1fr;
         }
+
+        .pipeline-steps {
+          grid-template-columns: 1fr;
+        }
+
+        .stats {
+          flex-direction: column;
+          gap: 20px;
+        }
+
+        .request-card {
+          padding: 32px 24px;
+        }
+
+        .hero { padding: 130px 0 72px; }
+      }
+
+      /* ─── Animations ─── */
+      @media (prefers-reduced-motion: no-preference) {
+        .feature-card,
+        .pipe-step,
+        .request-card {
+          animation: fade-up 0.6s ease both;
+        }
+
+        .feature-card:nth-child(2) { animation-delay: 0.08s; }
+        .feature-card:nth-child(3) { animation-delay: 0.16s; }
+        .feature-card:nth-child(4) { animation-delay: 0.24s; }
+        .feature-card:nth-child(5) { animation-delay: 0.32s; }
+        .feature-card:nth-child(6) { animation-delay: 0.4s; }
+
+        .pipe-step:nth-child(2) { animation-delay: 0.1s; }
+        .pipe-step:nth-child(3) { animation-delay: 0.2s; }
+        .pipe-step:nth-child(4) { animation-delay: 0.3s; }
+      }
+
+      @keyframes fade-up {
+        from { opacity: 0; transform: translateY(24px); }
+        to { opacity: 1; transform: translateY(0); }
       }
     </style>
   </head>
   <body>
+    <div class="bg-grid"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Navbar -->
+    <nav>
+      <div class="nav-inner">
+        <a class="brand" href="#">
+          <img src="logo.png" alt="Image Scraper logo">
+          <span>Image Scraper</span>
+        </a>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="latest/">Gallery</a>
+          <a href="#request" class="btn-nav">Start Scraping</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero -->
     <section class="hero">
-      <div class="hero-inner">
-        <div class="hero-copy">
-          <div class="eyebrow">GitHub Actions deployment</div>
-          <h1>Image Scraper Actions</h1>
-          <p class="lead">
-            A packaged Python scraper that runs in GitHub's cloud runners and publishes the latest scrape as a public gallery.
-          </p>
-          <div class="actions">
-            <a class="button" id="actions-link" href="https://github.com/">Open workflow</a>
-            <a class="button secondary" href="latest/">Latest gallery</a>
-            <a class="button secondary" id="repo-link" href="https://github.com/">View repository</a>
+      <div class="wrap">
+        <div class="badge">
+          <span class="badge-dot"></span>
+          Cloud-powered &middot; Fully automated
+        </div>
+        <h1>Collect Images<br><span class="gradient">From Any Website</span></h1>
+        <p class="hero-lead">
+          Enter a URL and let our cloud pipeline download, package, and publish product images automatically. No installs, no waiting — just results.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#request">Start Collecting →</a>
+          <a class="btn btn-ghost" href="latest/">View Latest Gallery</a>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-value">200</span>
+            <span class="stat-label">Max images per run</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">14 days</span>
+            <span class="stat-label">Artifact retention</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">100%</span>
+            <span class="stat-label">Cloud-powered</span>
           </div>
         </div>
       </div>
     </section>
 
-    <main>
-      <section class="section">
-        <div class="status-grid">
-          <article class="tile">
-            <strong>Cloud runner</strong>
-            <p>The Python job runs on Ubuntu through GitHub Actions, so local machine uptime is not required.</p>
+    <!-- Features -->
+    <section class="features" id="features">
+      <div class="wrap">
+        <div class="section-header">
+          <h2>Built for Speed & Reliability</h2>
+          <p>Everything you need for automated image collection, packaged into one seamless service.</p>
+        </div>
+        <div class="features-grid">
+          <article class="feature-card">
+            <div class="feature-icon fi-teal">☁️</div>
+            <h3>Cloud Execution</h3>
+            <p>Runs on cloud infrastructure — no local machine resources required. Schedule and forget.</p>
           </article>
-          <article class="tile">
-            <strong>Public latest gallery</strong>
-            <p>Successful scrape runs publish the latest image set to GitHub Pages for public viewing.</p>
+          <article class="feature-card">
+            <div class="feature-icon fi-rose">🛍️</div>
+            <h3>Shopify Detection</h3>
+            <p>Automatically detects Shopify stores and uses the product API for faster, more complete results.</p>
           </article>
-          <article class="tile">
-            <strong>Static public page</strong>
-            <p>This page is deployed with GitHub Pages for a public internet-facing project presence.</p>
+          <article class="feature-card">
+            <div class="feature-icon fi-amber">📦</div>
+            <h3>Manifest Reports</h3>
+            <p>Every run produces a detailed JSON manifest with source URLs, file sizes, and download status.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon fi-violet">🖼️</div>
+            <h3>Public Gallery</h3>
+            <p>Results are published as a beautiful static gallery, shareable with a single link.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon fi-blue">🔄</div>
+            <h3>Smart Retry</h3>
+            <p>Built-in retry logic with exponential backoff handles rate limits and transient failures.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon fi-green">🧹</div>
+            <h3>Junk Filtering</h3>
+            <p>Automatically filters payment icons, favicons, tracking pixels, and UI chrome from results.</p>
           </article>
         </div>
+      </div>
+    </section>
 
-        <div class="request-panel">
-          <h2>Request Picture Collection</h2>
-          <p>Enter a website URL and create a GitHub request. The cloud workflow processes it and publishes the result gallery.</p>
-          <div class="request-grid">
-            <label>
-              Website URL
+    <!-- Pipeline -->
+    <section class="pipeline" id="how-it-works">
+      <div class="wrap">
+        <div class="section-header">
+          <h2>How It Works</h2>
+          <p>From URL to published gallery in four automated steps.</p>
+        </div>
+        <div class="pipeline-steps">
+          <div class="pipe-step">
+            <span class="pipe-num">1</span>
+            <h3>Enter URL</h3>
+            <p>Provide the target website and an optional image limit.</p>
+          </div>
+          <div class="pipe-step">
+            <span class="pipe-num">2</span>
+            <h3>Scrape</h3>
+            <p>The engine checks Shopify JSON first, then parses standard HTML image sources.</p>
+          </div>
+          <div class="pipe-step">
+            <span class="pipe-num">3</span>
+            <h3>Package</h3>
+            <p>Downloaded files are saved alongside a detailed manifest for full auditability.</p>
+          </div>
+          <div class="pipe-step">
+            <span class="pipe-num">4</span>
+            <h3>Publish</h3>
+            <p>The gallery is deployed publicly and a downloadable artifact is stored for 14 days.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Request Form -->
+    <section class="request" id="request">
+      <div class="wrap">
+        <div class="request-card">
+          <h2>Start a Collection</h2>
+          <p>Enter a website URL below and we'll create a cloud scraping request for you.</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="request-url">Website URL</label>
               <input id="request-url" type="url" placeholder="https://example.com/products">
-            </label>
-            <label>
-              Max images
+            </div>
+            <div class="form-group">
+              <label for="request-max">Max Images</label>
               <input id="request-max" type="number" min="1" max="200" value="50">
-            </label>
-            <label>
-              Shopify mode
+            </div>
+            <div class="form-group">
+              <label for="request-mode">Shopify Mode</label>
               <select id="request-mode">
-                <option value="first">First image per product</option>
-                <option value="all">All images per product</option>
+                <option value="first">First per product</option>
+                <option value="all">All per product</option>
               </select>
-            </label>
-            <a class="button" id="request-link" href="https://github.com/Momin-Khannn/image-scraper/issues/new">Create request</a>
+            </div>
           </div>
-          <div class="request-note">A GitHub account is required to submit the request because GitHub Actions protects workflow triggers behind GitHub identity.</div>
-        </div>
-
-        <div class="pipeline" aria-label="Deployment pipeline">
-          <div class="step">
-            <span>1</span>
-            <h2>Input URL</h2>
-            <p>Start the workflow with a target site and an image limit.</p>
+          <div class="form-actions">
+            <a class="btn btn-primary" id="request-link" href="#">Create Request →</a>
           </div>
-          <div class="step">
-            <span>2</span>
-            <h2>Scrape</h2>
-            <p>The CLI checks Shopify JSON first, then standard HTML image sources.</p>
-          </div>
-          <div class="step">
-            <span>3</span>
-            <h2>Package</h2>
-            <p>Downloaded files are saved beside a manifest for auditability.</p>
-          </div>
-          <div class="step">
-            <span>4</span>
-            <h2>Publish</h2>
-            <p>GitHub deploys the latest gallery to Pages and stores a workflow artifact.</p>
+          <div class="form-note">
+            You'll be redirected to submit a request. A GitHub account is required for identity verification. Your request is processed automatically by our cloud pipeline.
           </div>
         </div>
+      </div>
+    </section>
 
-        <div class="stripe">
-          GitHub Pages hosts the public gallery. The scraper itself runs through GitHub Actions, not as a public Python web server.
-        </div>
-      </section>
-    </main>
-
+    <!-- Footer -->
     <footer>
-      Scrape only websites you are allowed to scrape and respect site terms, robots rules, and copyright.
+      <div class="wrap">
+        <p>&copy; 2026 Image Scraper. Only scrape sites you have permission to scrape. Respect website terms, robots rules, and copyright.</p>
+      </div>
     </footer>
 
     <script>
@@ -370,9 +799,6 @@
       const requestMax = document.getElementById("request-max");
       const requestMode = document.getElementById("request-mode");
       const requestLink = document.getElementById("request-link");
-
-      document.getElementById("repo-link").href = repoUrl;
-      document.getElementById("actions-link").href = `${repoUrl}/actions/workflows/scrape-images.yml`;
 
       function buildIssueUrl() {
         const target = requestUrl.value.trim();
@@ -403,6 +829,17 @@
       requestMax.addEventListener("input", buildIssueUrl);
       requestMode.addEventListener("change", buildIssueUrl);
       buildIssueUrl();
+
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(link => {
+        link.addEventListener("click", e => {
+          const target = document.querySelector(link.getAttribute("href"));
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
+      });
     </script>
   </body>
 </html>
