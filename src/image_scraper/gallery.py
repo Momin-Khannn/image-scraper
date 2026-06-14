@@ -65,7 +65,7 @@ def copy_gallery_images(output_dir: Path, images_dir: Path, manifest: dict[str, 
     return copied
 
 
-def render_gallery(manifest: dict[str, Any], copied_images: list[dict[str, Any]], *, back_href: str = "../") -> str:
+def render_gallery(manifest: dict[str, Any], copied_images: list[dict[str, Any]], *, back_href: str = "../", has_zip: bool = False) -> str:
     target_url = html.escape(str(manifest.get("target_url") or "No target URL"))
     strategy = html.escape(str(manifest.get("strategy") or "unknown"))
     started_at = html.escape(str(manifest.get("started_at") or "unknown"))
@@ -184,6 +184,22 @@ def render_gallery(manifest: dict[str, Any], copied_images: list[dict[str, Any]]
         font-size: 0.92rem;
       }}
 
+      .btn-download {{
+        display: inline-block;
+        padding: 8px 16px;
+        background: var(--accent);
+        color: #ffffff;
+        font-weight: 700;
+        text-decoration: none;
+        border-radius: 999px;
+        font-size: 0.92rem;
+        transition: background 0.2s;
+      }}
+
+      .btn-download:hover {{
+        background: #0d9488;
+      }}
+
       main {{
         padding: 28px 20px 60px;
       }}
@@ -258,6 +274,7 @@ def render_gallery(manifest: dict[str, Any], copied_images: list[dict[str, Any]]
           <span class="pill">Started: {started_at}</span>
           <span class="pill">Finished: {finished_at}</span>
         </div>
+        {"<div style='margin-top: 16px;'><a href='images.zip' class='btn-download'>Download All (.zip)</a></div>" if has_zip else ""}
       </div>
     </header>
     <main>
@@ -415,9 +432,15 @@ def build_public_gallery(
     gallery_dir.mkdir(parents=True, exist_ok=True)
 
     copied_images = copy_gallery_images(output_path, images_dir, manifest)
+    
+    has_zip = False
+    if copied_images:
+        shutil.make_archive(str(gallery_dir / "images"), 'zip', str(images_dir))
+        has_zip = True
+
     back_href = "../" if "/" not in gallery_subdir.strip("/") else "../../"
     (gallery_dir / "index.html").write_text(
-        render_gallery(manifest, copied_images, back_href=back_href),
+        render_gallery(manifest, copied_images, back_href=back_href, has_zip=has_zip),
         encoding="utf-8",
     )
     (gallery_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
